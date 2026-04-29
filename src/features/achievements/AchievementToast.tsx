@@ -1,67 +1,51 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, Sparkles, Gem, Crown, Star } from "lucide-react";
 import type { AchievementRarity, AchievementUnlockEvent } from "./types";
+import type { AchievementTheme } from "./themes";
+import { themeStyles } from "./themes";
 
 interface Props {
   achievement: AchievementUnlockEvent | null;
+  theme: AchievementTheme;
 }
 
 const rarityConfig: Record<
   AchievementRarity,
   {
     label: string;
-    border: string;
-    bar: string;
-    iconBg: string;
-    text: string;
     Icon: typeof Trophy;
   }
 > = {
   common: {
     label: "Común",
-    border: "border-slate-400/50",
-    bar: "bg-slate-400",
-    iconBg: "bg-slate-400",
-    text: "text-slate-300",
     Icon: Star,
   },
   rare: {
     label: "Raro",
-    border: "border-sky-400/50",
-    bar: "bg-sky-400",
-    iconBg: "bg-sky-400",
-    text: "text-sky-300",
     Icon: Sparkles,
   },
   epic: {
     label: "Épico",
-    border: "border-purple-400/50",
-    bar: "bg-purple-400",
-    iconBg: "bg-purple-400",
-    text: "text-purple-300",
     Icon: Gem,
   },
   legendary: {
     label: "Legendario",
-    border: "border-yellow-400/50",
-    bar: "bg-yellow-400",
-    iconBg: "bg-yellow-400",
-    text: "text-yellow-300",
     Icon: Crown,
   },
   platinum: {
     label: "Platino",
-    border: "border-cyan-200/70",
-    bar: "bg-cyan-200",
-    iconBg: "bg-cyan-200",
-    text: "text-cyan-100",
     Icon: Trophy,
   },
 };
 
-export function AchievementToast({ achievement }: Props) {
+export function AchievementToast({ achievement, theme }: Props) {
   const config = achievement ? rarityConfig[achievement.rarity] : null;
+  const themeConfig = themeStyles[theme];
+
   const Icon = config?.Icon ?? Trophy;
+  const accent = achievement
+    ? themeConfig.accentByRarity[achievement.rarity]
+    : "bg-yellow-400";
 
   return (
     <AnimatePresence>
@@ -75,20 +59,20 @@ export function AchievementToast({ achievement }: Props) {
             fixed top-8 right-8 z-50
             w-[420px]
             rounded-3xl
-            bg-slate-950/95
-            border ${config.border}
+            border
             shadow-2xl
             overflow-hidden
+            ${themeConfig.container}
           `}
         >
-          <div className={`h-1 ${config.bar}`} />
+          <div className={`h-1 ${accent}`} />
 
           <div className="p-5 flex gap-4 items-center">
             <div
               className={`
                 w-16 h-16
                 rounded-2xl
-                ${config.iconBg}
+                ${accent}
                 text-black
                 flex items-center justify-center
                 shadow-lg
@@ -101,7 +85,7 @@ export function AchievementToast({ achievement }: Props) {
               <div
                 className={`
                   flex items-center gap-2
-                  ${config.text}
+                  ${themeConfig.subtitle}
                   text-sm font-bold uppercase tracking-wide
                 `}
               >
@@ -109,7 +93,7 @@ export function AchievementToast({ achievement }: Props) {
                 Logro desbloqueado
               </div>
 
-              <h2 className="text-xl font-bold text-white">
+              <h2 className={`text-xl font-bold ${themeConfig.title}`}>
                 {achievement.achievementTitle}
               </h2>
 
@@ -117,7 +101,7 @@ export function AchievementToast({ achievement }: Props) {
                 {achievement.gameTitle}
               </p>
 
-              <p className={`text-sm mt-1 ${config.text}`}>
+              <p className={`text-sm mt-1 ${themeConfig.subtitle}`}>
                 Rareza: {config.label}
               </p>
             </div>
