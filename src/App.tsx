@@ -1,41 +1,19 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Trophy } from "lucide-react";
 import { AchievementToast } from "./features/achievements/AchievementToast";
 import { AchievementSimulator } from "./features/achievements/AchievementSimulator";
-import type { AchievementUnlockEvent } from "./features/achievements/types";
 import type { AchievementTheme } from "./features/achievements/themes";
 import { themeLabels } from "./features/achievements/themes";
+import { useAchievementQueue } from "./features/achievements/useAchievementQueue";
 
 export default function App() {
-  const [currentAchievement, setCurrentAchievement] =
-    useState<AchievementUnlockEvent | null>(null);
-
-  const [queue, setQueue] = useState<AchievementUnlockEvent[]>([]);
   const [theme, setTheme] = useState<AchievementTheme>("xbox");
 
-  function enqueueAchievement(achievement: AchievementUnlockEvent) {
-    setQueue((prev) => [...prev, achievement]);
-  }
-
-  useEffect(() => {
-    if (currentAchievement !== null) return;
-    if (queue.length === 0) return;
-
-    const nextAchievement = queue[0];
-
-    setCurrentAchievement(nextAchievement);
-    setQueue((prev) => prev.slice(1));
-  }, [currentAchievement, queue]);
-
-  useEffect(() => {
-    if (currentAchievement === null) return;
-
-    const timeout = setTimeout(() => {
-      setCurrentAchievement(null);
-    }, 4000);
-
-    return () => clearTimeout(timeout);
-  }, [currentAchievement]);
+  const {
+    currentAchievement,
+    queueLength,
+    enqueueAchievement,
+  } = useAchievementQueue();
 
   return (
     <main className="min-h-screen bg-slate-900 flex items-center justify-center">
@@ -86,7 +64,7 @@ export default function App() {
 
         <AchievementSimulator
           onSimulate={enqueueAchievement}
-          queueLength={queue.length}
+          queueLength={queueLength}
         />
       </div>
     </main>
