@@ -5,6 +5,7 @@ import { AchievementSimulator } from "./features/achievements/AchievementSimulat
 import type { AchievementTheme } from "./features/achievements/themes";
 import { themeLabels } from "./features/achievements/themes";
 import { useAchievementQueue } from "./features/achievements/useAchievementQueue";
+import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 
 export default function App() {
   const [theme, setTheme] = useState<AchievementTheme>("xbox");
@@ -59,6 +60,22 @@ export default function App() {
                 {label}
               </button>
             ))}
+            <button
+              onClick={openOverlayWindow}
+              className="
+                mb-6
+                w-full
+                px-6 py-4
+                rounded-2xl
+                bg-emerald-500
+                text-black
+                font-bold
+                hover:bg-emerald-400
+                transition
+              "
+            >
+              Abrir overlay de prueba
+            </button>
           </div>
         </div>
 
@@ -69,4 +86,26 @@ export default function App() {
       </div>
     </main>
   );
+
+  function openOverlayWindow() {
+  const overlay = new WebviewWindow("overlay", {
+    url: "index.html?view=overlay",
+    title: "Archivements Overlay",
+    width: 520,
+    height: 180,
+    decorations: false,
+    transparent: true,
+    alwaysOnTop: true,
+    resizable: false,
+    skipTaskbar: true,
+    });
+
+    overlay.once("tauri://created", () => {
+      console.log("Overlay creado");
+    });
+
+    overlay.once("tauri://error", (error) => {
+      console.error("Error creando overlay", error);
+    });
+  }
 }
