@@ -26,6 +26,7 @@ import { AchievementDefinitionList } from "./features/achievements/AchievementDe
 import { GameDetail } from "./features/achievements/GameDetail";
 import type { GameRecord } from "./features/achievements/achievementHistory";
 import { SteamImportForm } from "./features/achievements/SteamImportForm";
+import { FileWatcherPanel } from "./features/achievements/FileWatcherPanel";
 
 export default function App() {
   const [theme, setTheme] = useState<AchievementTheme>("xbox");
@@ -228,6 +229,8 @@ export default function App() {
         <SteamImportForm
           onImported={() => setLibraryRefreshKey((prev) => prev + 1)}
         />
+
+        <FileWatcherPanel />
 
         <GameLibrary refreshKey={libraryRefreshKey} onSelectGame={setSelectedGame} />
 
