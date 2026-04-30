@@ -25,6 +25,7 @@ import { AchievementDefinitionForm } from "./features/achievements/AchievementDe
 import { AchievementDefinitionList } from "./features/achievements/AchievementDefinitionList";
 import { GameDetail } from "./features/achievements/GameDetail";
 import type { GameRecord } from "./features/achievements/achievementHistory";
+import { SteamImportForm } from "./features/achievements/SteamImportForm";
 
 export default function App() {
   const [theme, setTheme] = useState<AchievementTheme>("xbox");
@@ -222,6 +223,10 @@ export default function App() {
         />
         <GameForm
           onGameCreated={() => setLibraryRefreshKey((prev) => prev + 1)}
+        />
+
+        <SteamImportForm
+          onImported={() => setLibraryRefreshKey((prev) => prev + 1)}
         />
 
         <GameLibrary refreshKey={libraryRefreshKey} onSelectGame={setSelectedGame} />
