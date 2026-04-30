@@ -73,6 +73,9 @@ export function FolderSnapshotPanel() {
   const [baseline, setBaseline] = useState<FileSnapshotEntry[]>([]);
   const [changes, setChanges] = useState<SnapshotChange[]>([]);
   const [message, setMessage] = useState("");
+  const [selectedFilePath, setSelectedFilePath] = useState("");
+  const [filePreview, setFilePreview] = useState("");
+  const [previewMessage, setPreviewMessage] = useState("");
 
   async function takeBaseline() {
     if (!folderPath.trim()) return;
@@ -117,6 +120,32 @@ export function FolderSnapshotPanel() {
     } catch (error) {
       console.error(error);
       setMessage(`Error comparando snapshot: ${String(error)}`);
+    }
+  }
+
+    async function previewFile(path: string) {
+    try {
+        setSelectedFilePath(path);
+        setPreviewMessage("Leyendo archivo...");
+        setFilePreview("");
+
+        const content = await invoke<string>("read_text_file", {
+        filePath: path,
+        });
+
+        setFilePreview(content.slice(0, 8000));
+
+        if (content.length > 8000) {
+        setPreviewMessage(
+            "Archivo leído parcialmente. Se muestran los primeros 8000 caracteres."
+        );
+        } else {
+        setPreviewMessage("Archivo leído correctamente.");
+        }
+    } catch (error) {
+        console.error(error);
+        setPreviewMessage(`No se pudo leer como texto: ${String(error)}`);
+        setFilePreview("");
     }
   }
 
@@ -215,11 +244,69 @@ export function FolderSnapshotPanel() {
                 <p className="text-xs text-slate-500 mt-1">
                   Tamaño: {change.file.size} bytes
                 </p>
+
+                {change.kind !== "deleted" && (
+                    <button
+                        onClick={() => previewFile(change.file.path)}
+                        className="
+                        mt-3
+                        px-4 py-2
+                        rounded-xl
+                        bg-sky-500
+                        text-black
+                        font-bold
+                        text-sm
+                        hover:bg-sky-400
+                        transition
+                        "
+                    >
+                        Ver contenido
+                    </button>
+                    )}
               </article>
             ))}
           </div>
         )}
       </div>
+      {selectedFilePath && (
+        <div className="mt-6 rounded-2xl bg-slate-950 border border-slate-700 p-4">
+            <h3 className="font-bold mb-2">
+            Vista previa del archivo
+            </h3>
+
+            <p className="text-xs text-slate-400 break-all mb-3">
+            {selectedFilePath}
+            </p>
+
+            {previewMessage && (
+            <p className="text-sm text-slate-300 mb-3">
+                {previewMessage}
+            </p>
+            )}
+
+            {filePreview ? (
+            <pre
+                className="
+                max-h-96
+                overflow-auto
+                whitespace-pre-wrap
+                break-words
+                rounded-xl
+                bg-black
+                p-4
+                text-xs
+                text-slate-200
+                "
+            >
+                {filePreview}
+            </pre>
+            ) : (
+            <p className="text-sm text-slate-500">
+                No hay contenido para mostrar.
+            </p>
+            )}
+        </div>
+        )}
     </section>
   );
 }
