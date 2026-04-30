@@ -6,10 +6,12 @@ import type { AchievementUnlockEvent } from "./features/achievements/types";
 import type { AchievementTheme } from "./features/achievements/themes";
 import { themeLabels } from "./features/achievements/themes";
 import { useAchievementQueue } from "./features/achievements/useAchievementQueue";
-import { useState } from "react";
 import type { OverlayPosition } from "./features/achievements/overlayPosition";
 import { overlayPositionLabels } from "./features/achievements/overlayPosition";
 import { useGlobalAchievementHotkeys } from "./features/achievements/useGlobalAchievementHotkeys";
+import { useEffect, useState } from "react";
+import { listen } from "@tauri-apps/api/event";
+import type { AchievementRarity } from "./features/achievements/types";
 
 export default function App() {
   const [theme, setTheme] = useState<AchievementTheme>("xbox");
@@ -20,6 +22,28 @@ export default function App() {
     queueLength,
     enqueueAchievement,
   } = useAchievementQueue();
+
+  useEffect(() => {
+  const unlistenPromise = listen<{
+    gameTitle: string;
+    achievementTitle: string;
+    description: string;
+    rarity: AchievementRarity;
+        }>("api-achievement-unlocked", (event) => {
+          handleAchievementSimulated({
+      id: crypto.randomUUID(),
+      gameTitle: event.payload.gameTitle,
+      achievementTitle: event.payload.achievementTitle,
+      description: event.payload.description,
+      rarity: event.payload.rarity,
+      unlockedAt: new Date().toISOString(),
+    });
+  });
+
+  return () => {
+    unlistenPromise.then((unlisten) => unlisten());
+  };
+}, [theme, position]);
 
   async function openOverlayWindow() {
     const existingOverlay = await WebviewWindow.getByLabel("overlay");
