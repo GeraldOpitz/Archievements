@@ -18,7 +18,15 @@ export default function App() {
     enqueueAchievement,
   } = useAchievementQueue();
 
-  function openOverlayWindow() {
+  async function openOverlayWindow() {
+    const existingOverlay = await WebviewWindow.getByLabel("overlay");
+
+    if (existingOverlay) {
+      await existingOverlay.show();
+      await existingOverlay.setFocus();
+      return;
+    }
+
     const overlay = new WebviewWindow("overlay", {
       url: "index.html?view=overlay",
       title: "Archivements Overlay",
