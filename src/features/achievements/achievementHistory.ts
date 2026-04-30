@@ -109,28 +109,33 @@ export async function saveAchievementUnlock(
 ) {
   const db = await getDatabase();
 
-  await db.execute(
-    `
-    INSERT OR REPLACE INTO achievement_unlocks (
-      id,
-      game_title,
-      achievement_title,
-      description,
-      rarity,
-      source,
-      unlocked_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?);
-    `,
-    [
-      achievement.id,
-      achievement.gameTitle,
-      achievement.achievementTitle,
-      achievement.description,
-      achievement.rarity,
-      source,
-      achievement.unlockedAt,
-    ]
-  );
+        await db.execute(
+        `
+        INSERT OR IGNORE INTO achievement_unlocks (
+            id,
+            game_title,
+            achievement_title,
+            description,
+            rarity,
+            source,
+            unlocked_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?);
+        `,
+        [
+            achievement.id,
+            achievement.gameTitle,
+            achievement.achievementTitle,
+            achievement.description,
+            achievement.rarity,
+            source,
+            achievement.unlockedAt,
+        ]
+    );
+
+    await db.execute(`
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_unique_unlock
+    ON achievement_unlocks (game_title, achievement_title);
+    `);
 }
 
 export async function getRecentAchievementUnlocks(limit = 10) {
