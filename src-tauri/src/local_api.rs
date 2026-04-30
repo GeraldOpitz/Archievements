@@ -11,6 +11,25 @@ pub struct ApiAchievementPayload {
     pub rarity: String,
 }
 
+fn is_valid_rarity(rarity: &str) -> bool {
+    matches!(
+        rarity,
+        "common" | "rare" | "epic" | "legendary" | "platinum"
+    )
+}
+
+fn json_response(body: &str, status_code: u16) -> Response<std::io::Cursor<Vec<u8>>> {
+    Response::from_string(body)
+        .with_status_code(status_code)
+        .with_header(
+            Header::from_bytes(
+                &b"Content-Type"[..],
+                &b"application/json"[..],
+            )
+            .unwrap(),
+        )
+}
+
 pub fn start_local_api(app: AppHandle) {
     std::thread::spawn(move || {
         let server = Server::http("127.0.0.1:3030")
@@ -26,8 +45,13 @@ pub fn start_local_api(app: AppHandle) {
                 let mut body = String::new();
 
                 if let Err(error) = request.as_reader().read_to_string(&mut body) {
-                    let response = Response::from_string(format!("Error reading body: {}", error))
-                        .with_status_code(400);
+                    let response = json_response(
+                        &format!(
+                            "{{\"ok\":false,\"error\":\"Error reading body: {}\"}}",
+                            error
+                        ),
+                        400,
+                    );
 
                     let _ = request.respond(response);
                     continue;
@@ -35,46 +59,39 @@ pub fn start_local_api(app: AppHandle) {
 
                 match serde_json::from_str::<ApiAchievementPayload>(&body) {
                     Ok(payload) => {
+                        if !is_valid_rarity(&payload.rarity) {
+                            let response = json_response(
+                                "{\"ok\":false,\"error\":\"Invalid rarity. Valid values are: common, rare, epic, legendary, platinum\"}",
+                                400,
+                            );
+
+                            let _ = request.respond(response);
+                            continue;
+                        }
+
                         let _ = app.emit("api-achievement-unlocked", payload);
 
-                        let response = Response::from_string("{\"ok\":true}")
-                            .with_header(
-                                Header::from_bytes(
-                                    &b"Content-Type"[..],
-                                    &b"application/json"[..],
-                                )
-                                .unwrap(),
-                            );
+                        let response = json_response("{\"ok\":true}", 200);
 
                         let _ = request.respond(response);
                     }
                     Err(error) => {
-                        let response = Response::from_string(format!(
-                            "{{\"ok\":false,\"error\":\"{}\"}}",
-                            error
-                        ))
-                        .with_status_code(400)
-                        .with_header(
-                            Header::from_bytes(
-                                &b"Content-Type"[..],
-                                &b"application/json"[..],
-                            )
-                            .unwrap(),
+                        let response = json_response(
+                            &format!(
+                                "{{\"ok\":false,\"error\":\"{}\"}}",
+                                error
+                            ),
+                            400,
                         );
 
                         let _ = request.respond(response);
                     }
                 }
             } else {
-                let response = Response::from_string("{\"ok\":false,\"error\":\"Not found\"}")
-                    .with_status_code(404)
-                    .with_header(
-                        Header::from_bytes(
-                            &b"Content-Type"[..],
-                            &b"application/json"[..],
-                        )
-                        .unwrap(),
-                    );
+                let response = json_response(
+                    "{\"ok\":false,\"error\":\"Not found\"}",
+                    404,
+                );
 
                 let _ = request.respond(response);
             }
