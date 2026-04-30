@@ -6,9 +6,10 @@ import {
 
 interface Props {
   refreshKey: number;
+  onSelectGame: (game: GameRecord) => void;
 }
 
-export function GameLibrary({ refreshKey }: Props) {
+export function GameLibrary({ refreshKey, onSelectGame }: Props) {
   const [games, setGames] = useState<GameRecord[]>([]);
 
   async function loadGames() {
@@ -33,13 +34,17 @@ export function GameLibrary({ refreshKey }: Props) {
       ) : (
         <div className="space-y-3">
           {games.map((game) => (
-            <article
+            <article 
               key={game.id}
+              onClick={() => onSelectGame(game)}
               className="
                 rounded-xl
                 bg-slate-800
                 p-4
                 border border-slate-700
+                cursor-pointer
+                hover:bg-slate-700
+                transition
               "
             >
               <p className="font-bold">

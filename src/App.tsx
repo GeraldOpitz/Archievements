@@ -23,12 +23,15 @@ import { GameForm } from "./features/achievements/GameForm";
 import { GameLibrary } from "./features/achievements/GameLibrary";
 import { AchievementDefinitionForm } from "./features/achievements/AchievementDefinitionForm";
 import { AchievementDefinitionList } from "./features/achievements/AchievementDefinitionList";
+import { GameDetail } from "./features/achievements/GameDetail";
+import type { GameRecord } from "./features/achievements/achievementHistory";
 
 export default function App() {
   const [theme, setTheme] = useState<AchievementTheme>("xbox");
   const [position, setPosition] = useState<OverlayPosition>("top-right");
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   const [libraryRefreshKey, setLibraryRefreshKey] = useState(0);
+  const [selectedGame, setSelectedGame] = useState<GameRecord | null>(null);
 
   const {
     currentAchievement,
@@ -221,7 +224,25 @@ export default function App() {
           onGameCreated={() => setLibraryRefreshKey((prev) => prev + 1)}
         />
 
-        <GameLibrary refreshKey={libraryRefreshKey} />
+        <GameLibrary refreshKey={libraryRefreshKey} onSelectGame={setSelectedGame} />
+
+        <GameDetail
+          game={selectedGame}
+          refreshKey={libraryRefreshKey + historyRefreshKey}
+          onUnlock={(achievement) =>
+            handleAchievementUnlocked(
+              {
+                id: crypto.randomUUID(),
+                gameTitle: selectedGame!.title,
+                achievementTitle: achievement.title,
+                description: achievement.description ?? "",
+                rarity: achievement.rarity,
+                unlockedAt: new Date().toISOString(),
+              },
+              "library"
+            )
+          }
+        />
 
         <AchievementDefinitionForm
           refreshKey={libraryRefreshKey}
