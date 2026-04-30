@@ -6,18 +6,13 @@ import type { AchievementUnlockEvent } from "./features/achievements/types";
 import type { AchievementTheme } from "./features/achievements/themes";
 import { themeLabels } from "./features/achievements/themes";
 import { useAchievementQueue } from "./features/achievements/useAchievementQueue";
-import { useEffect, useState } from "react";
-import {
-  achievementHotkeys,
-  registerAchievementHotkeys,
-  unregisterAchievementHotkeys,
-} from "./features/achievements/hotkeys";
+import { useState } from "react";
 import type { OverlayPosition } from "./features/achievements/overlayPosition";
 import { overlayPositionLabels } from "./features/achievements/overlayPosition";
+import { useGlobalAchievementHotkeys } from "./features/achievements/useGlobalAchievementHotkeys";
 
 export default function App() {
   const [theme, setTheme] = useState<AchievementTheme>("xbox");
-  const [hotkeysEnabled, setHotkeysEnabled] = useState(false);
   const [position, setPosition] = useState<OverlayPosition>("top-right");
 
   const {
@@ -64,16 +59,9 @@ export default function App() {
     await openOverlayWindow();
   }
 
-  async function handleHotkeysToggle() {
-    if (hotkeysEnabled) {
-      await unregisterAchievementHotkeys();
-      setHotkeysEnabled(false);
-      return;
-    }
-
-    await registerAchievementHotkeys(handleAchievementSimulated);
-    setHotkeysEnabled(true);
-  }
+  useGlobalAchievementHotkeys({
+  onAchievement: handleAchievementSimulated,
+  });
 
   return (
     <main className="min-h-screen bg-slate-900 flex items-center justify-center">
@@ -138,49 +126,6 @@ export default function App() {
         >
           Abrir overlay manualmente
         </button>
-
-        <div className="mb-6 rounded-2xl bg-slate-900/60 p-5">
-          <div className="flex items-center justify-between gap-4 mb-4">
-            <div>
-              <h2 className="text-lg font-bold">
-                Hotkeys globales
-              </h2>
-
-              <p className="text-sm text-slate-400">
-                Dispara logros aunque la app no esté enfocada.
-              </p>
-            </div>
-
-            <button
-              onClick={handleHotkeysToggle}
-              className={`
-                px-5 py-3
-                rounded-xl
-                font-bold
-                transition
-                ${
-                  hotkeysEnabled
-                    ? "bg-red-500 text-white hover:bg-red-400"
-                    : "bg-emerald-500 text-black hover:bg-emerald-400"
-                }
-              `}
-            >
-              {hotkeysEnabled ? "Desactivar" : "Activar"}
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 gap-2 text-sm text-slate-300">
-            {Object.entries(achievementHotkeys).map(([rarity, shortcut]) => (
-              <div
-                key={rarity}
-                className="flex justify-between rounded-xl bg-slate-800 px-4 py-2"
-              >
-                <span>{rarity}</span>
-                <code>{shortcut}</code>
-              </div>
-            ))}
-          </div>
-        </div>
 
         <div className="mb-6">
           <p className="text-sm text-slate-400 mb-3">
