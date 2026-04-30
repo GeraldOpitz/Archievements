@@ -23,8 +23,7 @@ export default function App() {
 
     if (existingOverlay) {
       await existingOverlay.show();
-      await existingOverlay.setFocus();
-      return;
+      return existingOverlay;
     }
 
     const overlay = new WebviewWindow("overlay", {
@@ -39,22 +38,20 @@ export default function App() {
       skipTaskbar: true,
     });
 
-    overlay.once("tauri://created", () => {
-      console.log("Overlay creado");
-    });
-
-    overlay.once("tauri://error", (error) => {
-      console.error("Error creando overlay", error);
-    });
+    return overlay;
   }
 
   async function handleAchievementSimulated(achievement: AchievementUnlockEvent) {
     enqueueAchievement(achievement);
 
-    await emitTo("overlay", "achievement-unlocked", {
-    achievement,
-    theme,
-  });
+    await openOverlayWindow();
+
+    setTimeout(async () => {
+      await emitTo("overlay", "achievement-unlocked", {
+        achievement,
+        theme,
+      });
+    }, 300);
   }
 
   return (
@@ -118,7 +115,7 @@ export default function App() {
             transition
           "
         >
-          Abrir overlay de prueba
+          Abrir overlay manualmente
         </button>
 
         <AchievementSimulator
