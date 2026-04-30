@@ -19,6 +19,22 @@ export interface GameProgressRecord {
   lastUnlockedAt: string;
 }
 
+export interface GameRecord {
+  id: string;
+  title: string;
+  platform: string | null;
+  createdAt: string;
+}
+
+export interface AchievementRecord {
+  id: string;
+  gameId: string;
+  title: string;
+  description: string | null;
+  rarity: AchievementUnlockEvent["rarity"];
+  createdAt: string;
+}
+
 export async function getGameProgress() {
   const db = await getDatabase();
 
@@ -54,6 +70,27 @@ export async function getDatabase() {
       unlocked_at TEXT NOT NULL
     );
   `);
+
+  await db.execute(`
+  CREATE TABLE IF NOT EXISTS games (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL UNIQUE,
+    platform TEXT,
+    created_at TEXT NOT NULL
+  );
+`);
+
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS achievements (
+      id TEXT PRIMARY KEY,
+      game_id TEXT NOT NULL,
+      title TEXT NOT NULL,
+      description TEXT,
+      rarity TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (game_id) REFERENCES games(id)
+    );
+`);
 
   return db;
 }
@@ -106,5 +143,102 @@ export async function getRecentAchievementUnlocks(limit = 10) {
     LIMIT ?;
     `,
     [limit]
+  );
+}
+
+export async function createGame(title: string, platform?: string) {
+  const db = await getDatabase();
+
+  const id = crypto.randomUUID();
+  const createdAt = new Date().toISOString();
+
+  await db.execute(
+    `
+    INSERT INTO games (
+      id,
+      title,
+      platform,
+      created_at
+    ) VALUES (?, ?, ?, ?);
+    `,
+    [id, title, platform ?? null, createdAt]
+  );
+
+  return {
+    id,
+    title,
+    platform: platform ?? null,
+    createdAt,
+  };
+}
+
+export async function getGames() {
+  const db = await getDatabase();
+
+  return db.select<GameRecord[]>(
+    `
+    SELECT
+      id,
+      title,
+      platform,
+      created_at as createdAt
+    FROM games
+    ORDER BY created_at DESC;
+    `
+  );
+}
+
+export async function createAchievement(
+  gameId: string,
+  title: string,
+  description: string,
+  rarity: AchievementUnlockEvent["rarity"]
+) {
+  const db = await getDatabase();
+
+  const id = crypto.randomUUID();
+  const createdAt = new Date().toISOString();
+
+  await db.execute(
+    `
+    INSERT INTO achievements (
+      id,
+      game_id,
+      title,
+      description,
+      rarity,
+      created_at
+    ) VALUES (?, ?, ?, ?, ?, ?);
+    `,
+    [id, gameId, title, description, rarity, createdAt]
+  );
+
+  return {
+    id,
+    gameId,
+    title,
+    description,
+    rarity,
+    createdAt,
+  };
+}
+
+export async function getAchievementsByGame(gameId: string) {
+  const db = await getDatabase();
+
+  return db.select<AchievementRecord[]>(
+    `
+    SELECT
+      id,
+      game_id as gameId,
+      title,
+      description,
+      rarity,
+      created_at as createdAt
+    FROM achievements
+    WHERE game_id = ?
+    ORDER BY created_at DESC;
+    `,
+    [gameId]
   );
 }
