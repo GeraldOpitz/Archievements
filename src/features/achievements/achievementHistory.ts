@@ -140,7 +140,7 @@ export async function saveAchievementUnlock(
 ) {
   const db = await getDatabase();
 
-  await db.execute(
+  const result = await db.execute(
     `
     INSERT OR IGNORE INTO achievement_unlocks (
       id,
@@ -162,6 +162,7 @@ export async function saveAchievementUnlock(
       achievement.unlockedAt,
     ]
   );
+  return result.rowsAffected > 0;
 }
 
 export async function getRecentAchievementUnlocks(limit = 10) {

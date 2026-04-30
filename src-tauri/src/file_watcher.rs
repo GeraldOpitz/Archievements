@@ -86,3 +86,16 @@ pub fn stop_file_watcher(state: State<WatcherState>) -> Result<(), String> {
 
     Ok(())
 }
+
+#[tauri::command]
+pub fn read_text_file(file_path: String) -> Result<String, String> {
+    let metadata = std::fs::metadata(&file_path)
+        .map_err(|error| format!("No se pudo leer metadata: {}", error))?;
+
+    if metadata.len() > 5 * 1024 * 1024 {
+        return Err("Archivo demasiado grande para leer como texto.".to_string());
+    }
+
+    std::fs::read_to_string(&file_path)
+        .map_err(|error| format!("No se pudo leer archivo como texto: {}", error))
+}

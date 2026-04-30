@@ -27,6 +27,12 @@ import { GameDetail } from "./features/achievements/GameDetail";
 import type { GameRecord } from "./features/achievements/achievementHistory";
 import { SteamImportForm } from "./features/achievements/SteamImportForm";
 import { FileWatcherPanel } from "./features/achievements/FileWatcherPanel";
+import { invoke } from "@tauri-apps/api/core";
+import { DetectionProfilePanel } from "./features/achievements/DetectionProfilePanel";
+import {
+  getDetectionProfiles,
+  type DetectionProfile,
+} from "./features/achievements/detectionProfiles";
 
 export default function App() {
   const [theme, setTheme] = useState<AchievementTheme>("xbox");
@@ -34,6 +40,8 @@ export default function App() {
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   const [libraryRefreshKey, setLibraryRefreshKey] = useState(0);
   const [selectedGame, setSelectedGame] = useState<GameRecord | null>(null);
+  const [detectorRefreshKey, setDetectorRefreshKey] = useState(0);
+  const [detectionProfiles, setDetectionProfiles] = useState<DetectionProfile[]>([]);
 
   const {
     currentAchievement,
@@ -66,6 +74,11 @@ export default function App() {
   };
 }, [theme, position]);
 
+useEffect(() => {
+  setDetectionProfiles(getDetectionProfiles());
+}, [detectorRefreshKey]);
+
+
   async function openOverlayWindow() {
     const existingOverlay = await WebviewWindow.getByLabel("overlay");
 
@@ -89,35 +102,73 @@ export default function App() {
     return overlay;
   }
 
-  async function handleAchievementUnlocked(achievement: AchievementUnlockEvent, source: string) {
-    enqueueAchievement(achievement);
+  async function handleFileChanged(payload: { path: string; kind: string }) {
+    for (const profile of detectionProfiles) {
+      const pathMatches = payload.path
+        .toLowerCase()
+        .includes(profile.fileNameIncludes.toLowerCase());
 
-    try {
-      await saveAchievementUnlock(achievement, source);
+      if (!pathMatches) continue;
 
-      console.log("Logro guardado en SQLite:", achievement);
+      try {
+        const content = await invoke<string>("read_text_file", {
+          filePath: payload.path,
+        });
 
-      const recentUnlocks = await getRecentAchievementUnlocks(10);
+        if (!content.includes(profile.pattern)) continue;
 
-      console.table(recentUnlocks);
-
-      setHistoryRefreshKey((prev) => prev + 1);
-
-    } catch (error) {
-      console.error("Error guardando logro:", error);
+        await handleAchievementUnlocked(
+          {
+            id: crypto.randomUUID(),
+            gameTitle: profile.gameTitle,
+            achievementTitle: profile.achievementTitle,
+            description: profile.description,
+            rarity: profile.rarity,
+            unlockedAt: new Date().toISOString(),
+          },
+          "file-watcher"
+        );
+      } catch (error) {
+        console.warn("No se pudo evaluar archivo:", error);
+      }
     }
-
-    localStorage.setItem(
-      "archivements:last-unlock",
-      JSON.stringify({
-        achievement,
-        theme,
-        position,
-      })
-    );
-
-    await openOverlayWindow();
   }
+
+    async function handleAchievementUnlocked(
+      achievement: AchievementUnlockEvent,
+      source: string
+    ) {
+      try {
+        const wasInserted = await saveAchievementUnlock(achievement, source);
+
+        if (!wasInserted) {
+          console.log("Logro ya desbloqueado, se ignora:", achievement);
+          return;
+        }
+
+        enqueueAchievement(achievement);
+
+        const recentUnlocks = await getRecentAchievementUnlocks(10);
+
+        console.table(recentUnlocks);
+
+        setHistoryRefreshKey((prev) => prev + 1);
+      } catch (error) {
+        console.error("Error guardando logro:", error);
+        return;
+      }
+
+      localStorage.setItem(
+        "archivements:last-unlock",
+        JSON.stringify({
+          achievement,
+          theme,
+          position,
+        })
+      );
+
+      await openOverlayWindow();
+    }
 
     useGlobalAchievementHotkeys({
       onAchievement: (achievement) =>
@@ -230,7 +281,12 @@ export default function App() {
           onImported={() => setLibraryRefreshKey((prev) => prev + 1)}
         />
 
-        <FileWatcherPanel />
+        <FileWatcherPanel onFileChanged={handleFileChanged} />
+
+        <DetectionProfilePanel
+          refreshKey={libraryRefreshKey + historyRefreshKey}
+          onProfilesChanged={() => setDetectorRefreshKey((prev) => prev + 1)}
+        />
 
         <GameLibrary refreshKey={libraryRefreshKey} onSelectGame={setSelectedGame} />
 

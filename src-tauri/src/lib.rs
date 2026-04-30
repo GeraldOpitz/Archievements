@@ -11,7 +11,8 @@ tauri::Builder::default()
     .invoke_handler(tauri::generate_handler![
         steam_api::import_steam_game_schema,
         file_watcher::start_file_watcher,
-        file_watcher::stop_file_watcher
+        file_watcher::stop_file_watcher,
+        file_watcher::read_text_file
     ])
     .setup(|app| {
         local_api::start_local_api(app.handle().clone());
