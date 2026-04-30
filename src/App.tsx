@@ -33,6 +33,7 @@ import {
   getDetectionProfiles,
   type DetectionProfile,
 } from "./features/achievements/detectionProfiles";
+import { FolderSnapshotPanel } from "./features/achievements/FolderSnapshotPanel";
 
 export default function App() {
   const [theme, setTheme] = useState<AchievementTheme>("xbox");
@@ -282,6 +283,8 @@ useEffect(() => {
         />
 
         <FileWatcherPanel onFileChanged={handleFileChanged} />
+
+        <FolderSnapshotPanel />
 
         <DetectionProfilePanel
           refreshKey={libraryRefreshKey + historyRefreshKey}

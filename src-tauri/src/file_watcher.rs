@@ -9,6 +9,8 @@ use serde::Serialize;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, Emitter, State};
+use std::time::UNIX_EPOCH;
+use walkdir::WalkDir;
 
 #[derive(Default)]
 pub struct WatcherState {
@@ -98,4 +100,63 @@ pub fn read_text_file(file_path: String) -> Result<String, String> {
 
     std::fs::read_to_string(&file_path)
         .map_err(|error| format!("No se pudo leer archivo como texto: {}", error))
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FileSnapshotEntry {
+    pub path: String,
+    pub relative_path: String,
+    pub size: u64,
+    pub modified_at: u64,
+}
+
+#[tauri::command]
+pub fn scan_folder_snapshot(folder_path: String) -> Result<Vec<FileSnapshotEntry>, String> {
+    let root = PathBuf::from(folder_path.clone());
+
+    if !root.exists() {
+        return Err(format!("La carpeta no existe: {}", folder_path));
+    }
+
+    if !root.is_dir() {
+        return Err(format!("La ruta no es una carpeta: {}", folder_path));
+    }
+
+    let mut entries = Vec::new();
+
+    for entry in WalkDir::new(&root)
+        .into_iter()
+        .filter_map(|entry| entry.ok())
+        .filter(|entry| entry.file_type().is_file())
+    {
+        let path = entry.path().to_path_buf();
+
+        let metadata = match std::fs::metadata(&path) {
+            Ok(metadata) => metadata,
+            Err(_) => continue,
+        };
+
+        let modified_at = metadata
+            .modified()
+            .ok()
+            .and_then(|time| time.duration_since(UNIX_EPOCH).ok())
+            .map(|duration| duration.as_secs())
+            .unwrap_or(0);
+
+        let relative_path = path
+            .strip_prefix(&root)
+            .unwrap_or(&path)
+            .to_string_lossy()
+            .to_string();
+
+        entries.push(FileSnapshotEntry {
+            path: path.to_string_lossy().to_string(),
+            relative_path,
+            size: metadata.len(),
+            modified_at,
+        });
+    }
+
+    Ok(entries)
 }
