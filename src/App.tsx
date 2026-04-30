@@ -21,6 +21,7 @@ import { AchievementHistory } from "./features/achievements/AchievementHistoryVi
 export default function App() {
   const [theme, setTheme] = useState<AchievementTheme>("xbox");
   const [position, setPosition] = useState<OverlayPosition>("top-right");
+  const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
 
   const {
     currentAchievement,
@@ -84,6 +85,9 @@ export default function App() {
       const recentUnlocks = await getRecentAchievementUnlocks(10);
 
       console.table(recentUnlocks);
+
+      setHistoryRefreshKey((prev) => prev + 1);
+
     } catch (error) {
       console.error("Error guardando logro:", error);
     }
@@ -200,7 +204,7 @@ export default function App() {
           onSimulate={handleAchievementSimulated}
           queueLength={queueLength}
         />
-        <AchievementHistory />
+        <AchievementHistory key={historyRefreshKey} />
       </div>
     </main>
   );

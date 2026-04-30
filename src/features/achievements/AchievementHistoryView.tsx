@@ -12,7 +12,11 @@ const rarityLabels = {
   platinum: "Platino",
 };
 
-export function AchievementHistory() {
+interface Props {
+  refreshKey: number;
+}
+
+export function AchievementHistory({ refreshKey }: Props) {
   const [unlocks, setUnlocks] = useState<AchievementUnlockRecord[]>([]);
 
   async function loadHistory() {
@@ -22,7 +26,7 @@ export function AchievementHistory() {
 
   useEffect(() => {
     loadHistory();
-  }, []);
+  }, [refreshKey]);
 
   if (unlocks.length === 0) {
     return (
