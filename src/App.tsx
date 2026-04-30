@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Trophy } from "lucide-react";
-import { emitTo } from "@tauri-apps/api/event";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { AchievementToast } from "./features/achievements/AchievementToast";
 import { AchievementSimulator } from "./features/achievements/AchievementSimulator";
@@ -44,14 +43,15 @@ export default function App() {
   async function handleAchievementSimulated(achievement: AchievementUnlockEvent) {
     enqueueAchievement(achievement);
 
-    await openOverlayWindow();
-
-    setTimeout(async () => {
-      await emitTo("overlay", "achievement-unlocked", {
+    localStorage.setItem(
+      "archivements:last-unlock",
+      JSON.stringify({
         achievement,
         theme,
-      });
-    }, 300);
+      })
+    );
+
+    await openOverlayWindow();
   }
 
   return (

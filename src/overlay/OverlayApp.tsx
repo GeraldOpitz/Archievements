@@ -1,11 +1,10 @@
-import { useEffect, useState } from "react";
-import { listen } from "@tauri-apps/api/event";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AchievementToast } from "../features/achievements/AchievementToast";
 import type { AchievementUnlockEvent } from "../features/achievements/types";
 import type { AchievementTheme } from "../features/achievements/themes";
 import { useAchievementQueue } from "../features/achievements/useAchievementQueue";
 
-interface OverlayAchievementEvent {
+interface StoredOverlayEvent {
   achievement: AchievementUnlockEvent;
   theme: AchievementTheme;
 }
@@ -13,24 +12,36 @@ interface OverlayAchievementEvent {
 export function OverlayApp() {
   const [theme, setTheme] = useState<AchievementTheme>("xbox");
 
-  const {
-    currentAchievement,
-    enqueueAchievement,
-  } = useAchievementQueue();
+  const { currentAchievement, enqueueAchievement } = useAchievementQueue();
+
+  const lastProcessedIdRef = useRef<string | null>(null);
+
+  const loadLastAchievement = useCallback(() => {
+    const raw = localStorage.getItem("archivements:last-unlock");
+
+    if (!raw) return;
+
+    const payload = JSON.parse(raw) as StoredOverlayEvent;
+
+    if (payload.achievement.id === lastProcessedIdRef.current) return;
+
+    lastProcessedIdRef.current = payload.achievement.id;
+
+    setTheme(payload.theme);
+    enqueueAchievement(payload.achievement);
+  }, [enqueueAchievement]);
 
   useEffect(() => {
-    const unlistenPromise = listen<OverlayAchievementEvent>(
-      "achievement-unlocked",
-      (event) => {
-        setTheme(event.payload.theme);
-        enqueueAchievement(event.payload.achievement);
-      }
-    );
+    loadLastAchievement();
+
+    const interval = window.setInterval(() => {
+      loadLastAchievement();
+    }, 300);
 
     return () => {
-      unlistenPromise.then((unlisten) => unlisten());
+      window.clearInterval(interval);
     };
-  }, [enqueueAchievement]);
+  }, [loadLastAchievement]);
 
   return (
     <main className="min-h-screen bg-transparent">
