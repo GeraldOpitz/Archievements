@@ -27,10 +27,12 @@ export interface GameRecord {
 export interface AchievementRecord {
   id: string;
   gameId: string;
+  gameTitle?: string;
   title: string;
   description: string | null;
   rarity: AchievementUnlockEvent["rarity"];
   createdAt: string;
+  unlockedAt: string | null;
 }
 
 export async function getGameProgress() {
@@ -235,15 +237,23 @@ export async function getAchievementsByGame(gameId: string) {
   return db.select<AchievementRecord[]>(
     `
     SELECT
-      id,
-      game_id as gameId,
-      title,
-      description,
-      rarity,
-      created_at as createdAt
+      achievements.id,
+      achievements.game_id as gameId,
+      games.title as gameTitle,
+      achievements.title,
+      achievements.description,
+      achievements.rarity,
+      achievements.created_at as createdAt,
+      MAX(achievement_unlocks.unlocked_at) as unlockedAt
     FROM achievements
-    WHERE game_id = ?
-    ORDER BY created_at DESC;
+    INNER JOIN games
+      ON games.id = achievements.game_id
+    LEFT JOIN achievement_unlocks
+      ON achievement_unlocks.game_title = games.title
+      AND achievement_unlocks.achievement_title = achievements.title
+    WHERE achievements.game_id = ?
+    GROUP BY achievements.id
+    ORDER BY achievements.created_at DESC;
     `,
     [gameId]
   );

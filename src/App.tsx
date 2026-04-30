@@ -231,7 +231,7 @@ export default function App() {
         />
 
         <AchievementDefinitionList
-          refreshKey={libraryRefreshKey}
+          refreshKey={libraryRefreshKey + historyRefreshKey}
           onUnlockAchievement={(data) =>
             handleAchievementUnlocked(
               {

@@ -12,7 +12,7 @@ interface Props {
     gameTitle: string;
     achievementTitle: string;
     description: string;
-    rarity: any;
+    rarity: AchievementRecord["rarity"];
   }) => void;
 }
 
@@ -133,10 +133,32 @@ export function AchievementDefinitionList({
                     <p className="text-xs text-slate-500">
                       Creado: {new Date(achievement.createdAt).toLocaleString()}
                     </p>
+                </div>
 
+                {achievement.unlockedAt ? (
+                <div className="mt-3 flex items-center justify-between gap-3">
+                    <span
+                    className="
+                        px-4 py-2
+                        rounded-xl
+                        bg-emerald-500/20
+                        text-emerald-300
+                        font-bold
+                        text-sm
+                    "
+                    >
+                    Desbloqueado
+                    </span>
+
+                    <span className="text-xs text-slate-500">
+                    {new Date(achievement.unlockedAt).toLocaleString()}
+                    </span>
+                </div>
+                ) : (
+                <div className="mt-3">
                     <button
-                      onClick={() => handleUnlock(achievement)}
-                      className="
+                    onClick={() => handleUnlock(achievement)}
+                    className="
                         px-4 py-2
                         rounded-xl
                         bg-emerald-500
@@ -145,11 +167,13 @@ export function AchievementDefinitionList({
                         text-sm
                         hover:bg-emerald-400
                         transition
-                      "
+                    "
                     >
-                      Desbloquear
+                    Desbloquear
                     </button>
-                  </div>
+                </div>
+                )}
+                  
                 </article>
               ))}
             </div>
