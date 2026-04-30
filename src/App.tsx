@@ -18,6 +18,7 @@ import {
 } from "./features/achievements/achievementHistory";
 import { AchievementHistory } from "./features/achievements/AchievementHistoryView";
 import { ManualAchievementForm } from "./features/achievements/ManualAchievementForm";
+import { GameProgress } from "./features/achievements/GameProgress";
 
 export default function App() {
   const [theme, setTheme] = useState<AchievementTheme>("xbox");
@@ -217,7 +218,8 @@ export default function App() {
             handleAchievementUnlocked(achievement, "manual")
           }
         />
-
+        
+        <GameProgress refreshKey={historyRefreshKey} />
         <AchievementHistory refreshKey={historyRefreshKey} />
       </div>
     </main>
