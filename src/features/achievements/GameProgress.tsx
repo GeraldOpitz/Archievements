@@ -42,53 +42,59 @@ export function GameProgress({ refreshKey }: Props) {
 
       <div className="space-y-3">
         {games.map((game) => (
-          <article
+            <article
             key={game.gameTitle}
             className="
-              rounded-xl
-              bg-slate-800
-              p-4
-              border border-slate-700
+                rounded-xl
+                bg-slate-800
+                p-4
+                border border-slate-700
             "
-          >
+            >
             <div className="flex justify-between gap-4">
-              <div>
+                <div>
                 <p className="font-bold">
-                  {game.gameTitle}
+                    {game.gameTitle}
                 </p>
 
                 <p className="text-sm text-slate-400">
-                  {game.totalUnlocks} logros desbloqueados
+                    {game.platform ?? "Sin plataforma"}
                 </p>
-              </div>
+                </div>
 
-              <span className="text-xs text-slate-500">
-                Último: {new Date(game.lastUnlockedAt).toLocaleString()}
-              </span>
+                <span className="text-sm font-bold text-yellow-300">
+                {game.progressPercentage}%
+                </span>
             </div>
 
-            <div className="mt-3 grid grid-cols-5 gap-2 text-xs">
-              <span className="rounded-lg bg-slate-700 p-2">
-                Común: {game.commonCount}
-              </span>
+            <div className="mt-4">
+                <div className="flex justify-between text-sm text-slate-400 mb-2">
+                <span>
+                    {game.unlockedAchievements} / {game.totalAchievements} logros
+                </span>
 
-              <span className="rounded-lg bg-sky-900/60 p-2">
-                Raro: {game.rareCount}
-              </span>
+                <span>
+                    {game.totalAchievements === 0
+                    ? "Sin logros definidos"
+                    : "Progreso"}
+                </span>
+                </div>
 
-              <span className="rounded-lg bg-purple-900/60 p-2">
-                Épico: {game.epicCount}
-              </span>
-
-              <span className="rounded-lg bg-yellow-900/60 p-2">
-                Legendario: {game.legendaryCount}
-              </span>
-
-              <span className="rounded-lg bg-cyan-900/60 p-2">
-                Platino: {game.platinumCount}
-              </span>
+                <div className="h-3 rounded-full bg-slate-700 overflow-hidden">
+                <div
+                    className="h-full bg-yellow-400"
+                    style={{ width: `${game.progressPercentage}%` }}
+                />
+                </div>
             </div>
-          </article>
+
+            {game.lastUnlockedAt && (
+                <p className="text-xs text-slate-500 mt-3">
+                Último desbloqueo:{" "}
+                {new Date(game.lastUnlockedAt).toLocaleString()}
+                </p>
+            )}
+            </article>
         ))}
       </div>
     </section>

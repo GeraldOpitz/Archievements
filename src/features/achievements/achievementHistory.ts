@@ -10,13 +10,11 @@ export interface AchievementUnlockRecord extends AchievementUnlockEvent {
 
 export interface GameProgressRecord {
   gameTitle: string;
-  totalUnlocks: number;
-  commonCount: number;
-  rareCount: number;
-  epicCount: number;
-  legendaryCount: number;
-  platinumCount: number;
-  lastUnlockedAt: string;
+  platform: string | null;
+  totalAchievements: number;
+  unlockedAchievements: number;
+  progressPercentage: number;
+  lastUnlockedAt: string | null;
 }
 
 export interface GameRecord {
@@ -41,17 +39,25 @@ export async function getGameProgress() {
   return db.select<GameProgressRecord[]>(
     `
     SELECT
-      game_title as gameTitle,
-      COUNT(*) as totalUnlocks,
-      SUM(CASE WHEN rarity = 'common' THEN 1 ELSE 0 END) as commonCount,
-      SUM(CASE WHEN rarity = 'rare' THEN 1 ELSE 0 END) as rareCount,
-      SUM(CASE WHEN rarity = 'epic' THEN 1 ELSE 0 END) as epicCount,
-      SUM(CASE WHEN rarity = 'legendary' THEN 1 ELSE 0 END) as legendaryCount,
-      SUM(CASE WHEN rarity = 'platinum' THEN 1 ELSE 0 END) as platinumCount,
-      MAX(unlocked_at) as lastUnlockedAt
-    FROM achievement_unlocks
-    GROUP BY game_title
-    ORDER BY lastUnlockedAt DESC;
+      games.title as gameTitle,
+      games.platform as platform,
+      COUNT(achievements.id) as totalAchievements,
+      COUNT(DISTINCT achievement_unlocks.achievement_title) as unlockedAchievements,
+      CASE
+        WHEN COUNT(achievements.id) = 0 THEN 0
+        ELSE ROUND(
+          COUNT(DISTINCT achievement_unlocks.achievement_title) * 100.0 / COUNT(achievements.id)
+        )
+      END as progressPercentage,
+      MAX(achievement_unlocks.unlocked_at) as lastUnlockedAt
+    FROM games
+    LEFT JOIN achievements
+      ON achievements.game_id = games.id
+    LEFT JOIN achievement_unlocks
+      ON achievement_unlocks.game_title = games.title
+      AND achievement_unlocks.achievement_title = achievements.title
+    GROUP BY games.id
+    ORDER BY lastUnlockedAt DESC, games.created_at DESC;
     `
   );
 }
