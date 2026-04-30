@@ -12,6 +12,11 @@ import { useGlobalAchievementHotkeys } from "./features/achievements/useGlobalAc
 import { useEffect, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
 import type { AchievementRarity } from "./features/achievements/types";
+import {
+  saveAchievementUnlock,
+  getRecentAchievementUnlocks,
+} from "./features/achievements/achievementHistory";
+import { AchievementHistory } from "./features/achievements/AchievementHistoryView";
 
 export default function App() {
   const [theme, setTheme] = useState<AchievementTheme>("xbox");
@@ -71,12 +76,24 @@ export default function App() {
   async function handleAchievementSimulated(achievement: AchievementUnlockEvent) {
     enqueueAchievement(achievement);
 
+    try {
+      await saveAchievementUnlock(achievement, "simulator");
+
+      console.log("Logro guardado en SQLite:", achievement);
+
+      const recentUnlocks = await getRecentAchievementUnlocks(10);
+
+      console.table(recentUnlocks);
+    } catch (error) {
+      console.error("Error guardando logro:", error);
+    }
+
     localStorage.setItem(
       "archivements:last-unlock",
       JSON.stringify({
         achievement,
         theme,
-        position
+        position,
       })
     );
 
@@ -88,7 +105,7 @@ export default function App() {
   });
 
   return (
-    <main className="min-h-screen bg-slate-900 flex items-center justify-center">
+    <main className="min-h-screen bg-slate-900 flex items-start justify-center p-8">
       <AchievementToast achievement={currentAchievement} theme={theme} position={position} />
 
       <div className="w-[760px] p-10 rounded-3xl bg-slate-800 shadow-2xl">
@@ -183,6 +200,7 @@ export default function App() {
           onSimulate={handleAchievementSimulated}
           queueLength={queueLength}
         />
+        <AchievementHistory />
       </div>
     </main>
   );

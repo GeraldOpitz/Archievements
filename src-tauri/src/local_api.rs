@@ -21,13 +21,7 @@ fn is_valid_rarity(rarity: &str) -> bool {
 fn json_response(body: &str, status_code: u16) -> Response<std::io::Cursor<Vec<u8>>> {
     Response::from_string(body)
         .with_status_code(status_code)
-        .with_header(
-            Header::from_bytes(
-                &b"Content-Type"[..],
-                &b"application/json"[..],
-            )
-            .unwrap(),
-        )
+        .with_header(Header::from_bytes(&b"Content-Type"[..], &b"application/json"[..]).unwrap())
 }
 
 pub fn start_local_api(app: AppHandle) {
@@ -77,10 +71,7 @@ pub fn start_local_api(app: AppHandle) {
                     }
                     Err(error) => {
                         let response = json_response(
-                            &format!(
-                                "{{\"ok\":false,\"error\":\"{}\"}}",
-                                error
-                            ),
+                            &format!("{{\"ok\":false,\"error\":\"{}\"}}", error),
                             400,
                         );
 
@@ -88,10 +79,7 @@ pub fn start_local_api(app: AppHandle) {
                     }
                 }
             } else {
-                let response = json_response(
-                    "{\"ok\":false,\"error\":\"Not found\"}",
-                    404,
-                );
+                let response = json_response("{\"ok\":false,\"error\":\"Not found\"}", 404);
 
                 let _ = request.respond(response);
             }

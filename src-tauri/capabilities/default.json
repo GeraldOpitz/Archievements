@@ -12,6 +12,9 @@
     "global-shortcut:allow-register",
     "global-shortcut:allow-unregister",
     "global-shortcut:allow-unregister-all",
-    "global-shortcut:allow-is-registered"
+    "global-shortcut:allow-is-registered",
+    "sql:allow-load",
+    "sql:allow-execute",
+    "sql:allow-select"
   ]
 }
