@@ -5,6 +5,7 @@ import type { AchievementTheme } from "./themes";
 import { themeStyles } from "./themes";
 import type { OverlayPosition } from "./overlayPosition";
 import { overlayPositionClasses } from "./overlayPosition";
+import { achievementAnimations } from "./animations";
 
 interface Props {
   achievement: AchievementUnlockEvent | null;
@@ -50,14 +51,18 @@ export function AchievementToast({ achievement, theme, position = "top-right" }:
     ? themeConfig.accentByRarity[achievement.rarity]
     : "bg-yellow-400";
 
+  const animation = achievement
+  ? achievementAnimations[achievement.rarity]
+  : achievementAnimations.common;
+
   return (
     <AnimatePresence>
       {achievement && config && (
         <motion.div
-          initial={{ opacity: 0, y: -40, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -40, scale: 0.95 }}
-          transition={{ duration: 0.35 }}
+          initial={animation.initial}
+          animate={animation.animate}
+          exit={animation.exit}
+          transition={animation.transition}
           className={`
             fixed ${overlayPositionClasses[position]} z-50
             w-[420px]
@@ -66,6 +71,7 @@ export function AchievementToast({ achievement, theme, position = "top-right" }:
             shadow-2xl
             overflow-hidden
             ${themeConfig.container}
+            ${animation.extraClass ?? ""}
           `}
         >
           <div className={`h-1 ${accent}`} />
