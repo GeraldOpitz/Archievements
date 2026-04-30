@@ -21,6 +21,7 @@ import { ManualAchievementForm } from "./features/achievements/ManualAchievement
 import { GameProgress } from "./features/achievements/GameProgress";
 import { GameForm } from "./features/achievements/GameForm";
 import { GameLibrary } from "./features/achievements/GameLibrary";
+import { AchievementDefinitionForm } from "./features/achievements/AchievementDefinitionForm";
 
 export default function App() {
   const [theme, setTheme] = useState<AchievementTheme>("xbox");
@@ -220,7 +221,14 @@ export default function App() {
         />
 
         <GameLibrary refreshKey={libraryRefreshKey} />
-        
+
+        <AchievementDefinitionForm
+          refreshKey={libraryRefreshKey}
+          onAchievementCreated={() =>
+            setLibraryRefreshKey((prev) => prev + 1)
+          }
+        />
+
         <ManualAchievementForm
           onUnlock={(achievement) =>
             handleAchievementUnlocked(achievement, "manual")
