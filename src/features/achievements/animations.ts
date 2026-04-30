@@ -1,14 +1,20 @@
+import type {
+  TargetAndTransition,
+  Transition,
+} from "framer-motion";
 import type { AchievementRarity } from "./types";
+
+interface AchievementAnimationConfig {
+  initial: TargetAndTransition;
+  animate: TargetAndTransition;
+  exit: TargetAndTransition;
+  transition: Transition;
+  extraClass?: string;
+}
 
 export const achievementAnimations: Record<
   AchievementRarity,
-  {
-    initial: object;
-    animate: object;
-    exit: object;
-    transition: object;
-    extraClass?: string;
-  }
+  AchievementAnimationConfig
 > = {
   common: {
     initial: { opacity: 0, y: -24, scale: 0.98 },

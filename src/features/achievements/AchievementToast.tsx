@@ -6,6 +6,8 @@ import { themeStyles } from "./themes";
 import type { OverlayPosition } from "./overlayPosition";
 import { overlayPositionClasses } from "./overlayPosition";
 import { achievementAnimations } from "./animations";
+import { useEffect } from "react";
+import { playAchievementSound } from "./sounds";
 
 interface Props {
   achievement: AchievementUnlockEvent | null;
@@ -54,6 +56,12 @@ export function AchievementToast({ achievement, theme, position = "top-right" }:
   const animation = achievement
   ? achievementAnimations[achievement.rarity]
   : achievementAnimations.common;
+
+  useEffect(() => {
+  if (!achievement) return;
+
+  playAchievementSound(achievement.rarity);
+}, [achievement]);
 
   return (
     <AnimatePresence>
