@@ -19,11 +19,13 @@ import {
 import { AchievementHistory } from "./features/achievements/AchievementHistoryView";
 import { ManualAchievementForm } from "./features/achievements/ManualAchievementForm";
 import { GameProgress } from "./features/achievements/GameProgress";
+import { GameForm } from "./features/achievements/GameForm";
 
 export default function App() {
   const [theme, setTheme] = useState<AchievementTheme>("xbox");
   const [position, setPosition] = useState<OverlayPosition>("top-right");
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
+  const [libraryRefreshKey, setLibraryRefreshKey] = useState(0);
 
   const {
     currentAchievement,
@@ -212,13 +214,15 @@ export default function App() {
           }
           queueLength={queueLength}
         />
-
+        <GameForm
+          onGameCreated={() => setLibraryRefreshKey((prev) => prev + 1)}
+        />
         <ManualAchievementForm
           onUnlock={(achievement) =>
             handleAchievementUnlocked(achievement, "manual")
           }
         />
-        
+
         <GameProgress refreshKey={historyRefreshKey} />
         <AchievementHistory refreshKey={historyRefreshKey} />
       </div>
