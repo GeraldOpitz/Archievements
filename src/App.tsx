@@ -36,14 +36,17 @@ export default function App() {
     description: string;
     rarity: AchievementRarity;
         }>("api-achievement-unlocked", (event) => {
-          handleAchievementSimulated({
-      id: crypto.randomUUID(),
-      gameTitle: event.payload.gameTitle,
-      achievementTitle: event.payload.achievementTitle,
-      description: event.payload.description,
-      rarity: event.payload.rarity,
-      unlockedAt: new Date().toISOString(),
-    });
+      handleAchievementUnlocked(
+        {
+          id: crypto.randomUUID(),
+          gameTitle: event.payload.gameTitle,
+          achievementTitle: event.payload.achievementTitle,
+          description: event.payload.description,
+          rarity: event.payload.rarity,
+          unlockedAt: new Date().toISOString(),
+        },
+        "api"
+      );
   });
 
   return () => {
@@ -74,11 +77,11 @@ export default function App() {
     return overlay;
   }
 
-  async function handleAchievementSimulated(achievement: AchievementUnlockEvent) {
+  async function handleAchievementUnlocked(achievement: AchievementUnlockEvent, source: string) {
     enqueueAchievement(achievement);
 
     try {
-      await saveAchievementUnlock(achievement, "simulator");
+      await saveAchievementUnlock(achievement, source);
 
       console.log("Logro guardado en SQLite:", achievement);
 
@@ -104,9 +107,10 @@ export default function App() {
     await openOverlayWindow();
   }
 
-  useGlobalAchievementHotkeys({
-  onAchievement: handleAchievementSimulated,
-  });
+    useGlobalAchievementHotkeys({
+      onAchievement: (achievement) =>
+        handleAchievementUnlocked(achievement, "hotkey"),
+    });
 
   return (
     <main className="min-h-screen bg-slate-900 flex items-start justify-center p-8">
@@ -201,10 +205,12 @@ export default function App() {
         </div>
 
         <AchievementSimulator
-          onSimulate={handleAchievementSimulated}
+          onSimulate={(achievement) =>
+            handleAchievementUnlocked(achievement, "simulator")
+          }
           queueLength={queueLength}
         />
-        <AchievementHistory key={historyRefreshKey} />
+        <AchievementHistory refreshKey={historyRefreshKey} />
       </div>
     </main>
   );
