@@ -51,7 +51,10 @@ export default function App() {
   async function handleAchievementSimulated(achievement: AchievementUnlockEvent) {
     enqueueAchievement(achievement);
 
-    await emitTo("overlay", "achievement-unlocked", achievement);
+    await emitTo("overlay", "achievement-unlocked", {
+    achievement,
+    theme,
+  });
   }
 
   return (
