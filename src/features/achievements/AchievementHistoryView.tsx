@@ -84,6 +84,11 @@ export function AchievementHistory({ refreshKey }: Props) {
                 <p className="text-sm text-slate-400">
                   {unlock.gameTitle}
                 </p>
+                {unlock.description && (
+                  <p className="text-sm text-slate-500 mt-1">
+                    {unlock.description}
+                  </p>
+)}
               </div>
 
               <span className="text-xs font-bold text-yellow-300">

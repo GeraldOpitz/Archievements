@@ -17,6 +17,7 @@ import {
   getRecentAchievementUnlocks,
 } from "./features/achievements/achievementHistory";
 import { AchievementHistory } from "./features/achievements/AchievementHistoryView";
+import { ManualAchievementForm } from "./features/achievements/ManualAchievementForm";
 
 export default function App() {
   const [theme, setTheme] = useState<AchievementTheme>("xbox");
@@ -210,6 +211,13 @@ export default function App() {
           }
           queueLength={queueLength}
         />
+
+        <ManualAchievementForm
+          onUnlock={(achievement) =>
+            handleAchievementUnlocked(achievement, "manual")
+          }
+        />
+
         <AchievementHistory refreshKey={historyRefreshKey} />
       </div>
     </main>
