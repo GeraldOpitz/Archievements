@@ -3,10 +3,13 @@ import { Trophy, Sparkles, Gem, Crown, Star } from "lucide-react";
 import type { AchievementRarity, AchievementUnlockEvent } from "./types";
 import type { AchievementTheme } from "./themes";
 import { themeStyles } from "./themes";
+import type { OverlayPosition } from "./overlayPosition";
+import { overlayPositionClasses } from "./overlayPosition";
 
 interface Props {
   achievement: AchievementUnlockEvent | null;
   theme: AchievementTheme;
+  position?: OverlayPosition;
 }
 
 const rarityConfig: Record<
@@ -38,7 +41,7 @@ const rarityConfig: Record<
   },
 };
 
-export function AchievementToast({ achievement, theme }: Props) {
+export function AchievementToast({ achievement, theme, position = "top-right" }: Props) {
   const config = achievement ? rarityConfig[achievement.rarity] : null;
   const themeConfig = themeStyles[theme];
 
@@ -56,7 +59,7 @@ export function AchievementToast({ achievement, theme }: Props) {
           exit={{ opacity: 0, y: -40, scale: 0.95 }}
           transition={{ duration: 0.35 }}
           className={`
-            fixed top-8 right-8 z-50
+            fixed ${overlayPositionClasses[position]} z-50
             w-[420px]
             rounded-3xl
             border

@@ -3,14 +3,17 @@ import { AchievementToast } from "../features/achievements/AchievementToast";
 import type { AchievementUnlockEvent } from "../features/achievements/types";
 import type { AchievementTheme } from "../features/achievements/themes";
 import { useAchievementQueue } from "../features/achievements/useAchievementQueue";
+import type { OverlayPosition } from "../features/achievements/overlayPosition";
 
 interface StoredOverlayEvent {
   achievement: AchievementUnlockEvent;
   theme: AchievementTheme;
+  position: OverlayPosition;
 }
 
 export function OverlayApp() {
   const [theme, setTheme] = useState<AchievementTheme>("xbox");
+  const [position, setPosition] = useState<OverlayPosition>("top-right");
 
   const { currentAchievement, enqueueAchievement } = useAchievementQueue();
 
@@ -28,6 +31,7 @@ export function OverlayApp() {
     lastProcessedIdRef.current = payload.achievement.id;
 
     setTheme(payload.theme);
+    setPosition(payload.position ?? "top-right");
     enqueueAchievement(payload.achievement);
   }, [enqueueAchievement]);
 
@@ -48,6 +52,7 @@ export function OverlayApp() {
       <AchievementToast
         achievement={currentAchievement}
         theme={theme}
+        position={position}
       />
     </main>
   );
