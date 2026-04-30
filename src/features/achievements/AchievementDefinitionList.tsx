@@ -8,6 +8,12 @@ import {
 
 interface Props {
   refreshKey: number;
+  onUnlockAchievement: (achievement: {
+    gameTitle: string;
+    achievementTitle: string;
+    description: string;
+    rarity: any;
+  }) => void;
 }
 
 const rarityLabels = {
@@ -18,7 +24,10 @@ const rarityLabels = {
   platinum: "Platino",
 };
 
-export function AchievementDefinitionList({ refreshKey }: Props) {
+export function AchievementDefinitionList({
+  refreshKey,
+  onUnlockAchievement,
+}: Props) {
   const [games, setGames] = useState<GameRecord[]>([]);
   const [selectedGameId, setSelectedGameId] = useState("");
   const [achievements, setAchievements] = useState<AchievementRecord[]>([]);
@@ -47,6 +56,19 @@ export function AchievementDefinitionList({ refreshKey }: Props) {
   useEffect(() => {
     loadAchievements(selectedGameId);
   }, [selectedGameId, refreshKey]);
+
+  function handleUnlock(achievement: AchievementRecord) {
+    const game = games.find((g) => g.id === achievement.gameId);
+
+    if (!game) return;
+
+    onUnlockAchievement({
+      gameTitle: game.title,
+      achievementTitle: achievement.title,
+      description: achievement.description ?? "",
+      rarity: achievement.rarity,
+    });
+  }
 
   return (
     <section className="mt-8 rounded-2xl bg-slate-900/60 p-5">
@@ -89,7 +111,7 @@ export function AchievementDefinitionList({ refreshKey }: Props) {
                     border border-slate-700
                   "
                 >
-                  <div className="flex justify-between gap-4">
+                  <div className="flex justify-between gap-4 items-start">
                     <div>
                       <p className="font-bold">
                         {achievement.title}
@@ -107,9 +129,27 @@ export function AchievementDefinitionList({ refreshKey }: Props) {
                     </span>
                   </div>
 
-                  <p className="text-xs text-slate-500 mt-2">
-                    Creado: {new Date(achievement.createdAt).toLocaleString()}
-                  </p>
+                  <div className="mt-3 flex justify-between items-center">
+                    <p className="text-xs text-slate-500">
+                      Creado: {new Date(achievement.createdAt).toLocaleString()}
+                    </p>
+
+                    <button
+                      onClick={() => handleUnlock(achievement)}
+                      className="
+                        px-4 py-2
+                        rounded-xl
+                        bg-emerald-500
+                        text-black
+                        font-bold
+                        text-sm
+                        hover:bg-emerald-400
+                        transition
+                      "
+                    >
+                      Desbloquear
+                    </button>
+                  </div>
                 </article>
               ))}
             </div>

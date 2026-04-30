@@ -230,7 +230,22 @@ export default function App() {
           }
         />
 
-        <AchievementDefinitionList refreshKey={libraryRefreshKey} />
+        <AchievementDefinitionList
+          refreshKey={libraryRefreshKey}
+          onUnlockAchievement={(data) =>
+            handleAchievementUnlocked(
+              {
+                id: crypto.randomUUID(),
+                gameTitle: data.gameTitle,
+                achievementTitle: data.achievementTitle,
+                description: data.description,
+                rarity: data.rarity,
+                unlockedAt: new Date().toISOString(),
+              },
+              "library"
+            )
+          }
+        />
 
         <ManualAchievementForm
           onUnlock={(achievement) =>
