@@ -119,7 +119,25 @@ useEffect(() => {
           filePath: payload.path,
         });
 
-        if (!content.includes(profile.pattern)) continue;
+        const matchType = profile.matchType ?? "contains";
+
+          let matched = false;
+
+          if (matchType === "contains") {
+            matched = content.includes(profile.pattern);
+          }
+
+          if (matchType === "regex") {
+            try {
+              const regex = new RegExp(profile.pattern, "i");
+              matched = regex.test(content);
+            } catch (error) {
+              console.warn("Regex inválida en perfil:", profile, error);
+              matched = false;
+            }
+          }
+
+          if (!matched) continue;
 
         await handleAchievementUnlocked(
           {

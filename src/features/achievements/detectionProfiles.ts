@@ -2,6 +2,8 @@ import type { AchievementRarity } from "./types";
 
 const STORAGE_KEY = "archivements:detection-profiles";
 
+export type DetectionMatchType = "contains" | "regex";
+
 export interface DetectionProfile {
   id: string;
   gameTitle: string;
@@ -10,12 +12,14 @@ export interface DetectionProfile {
   rarity: AchievementRarity;
   fileNameIncludes: string;
   pattern: string;
+  matchType: DetectionMatchType;
   createdAt: string;
 }
 
 export interface DetectionProfileDraft {
   fileNameIncludes: string;
   pattern: string;
+  matchType?: DetectionMatchType;
 }
 
 export function getDetectionProfiles(): DetectionProfile[] {

@@ -94,6 +94,7 @@ export function FolderSnapshotPanel({ onCreateProfileDraft }: Props) {
       onCreateProfileDraft?.({
         fileNameIncludes: getFileName(selectedFilePath),
         pattern: candidatePattern.trim(),
+        matchType: "contains",
       });
     }
 

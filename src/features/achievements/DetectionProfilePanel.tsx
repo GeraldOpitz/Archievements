@@ -10,8 +10,9 @@ import {
   getDetectionProfiles,
   saveDetectionProfile,
   type DetectionProfile,
+  type DetectionProfileDraft,
+  type DetectionMatchType,
 } from "./detectionProfiles";
-import type { DetectionProfileDraft } from "./detectionProfiles";
 
 interface Props {
   refreshKey: number;
@@ -32,6 +33,7 @@ export function DetectionProfilePanel({
   const [achievementId, setAchievementId] = useState("");
   const [fileNameIncludes, setFileNameIncludes] = useState("");
   const [pattern, setPattern] = useState("");
+  const [matchType, setMatchType] = useState<DetectionMatchType>("contains");
 
   async function loadGames() {
     const savedGames = await getGames();
@@ -66,12 +68,13 @@ export function DetectionProfilePanel({
     loadAchievements(gameId);
   }, [gameId, refreshKey]);
 
-  useEffect(() => {
-    if (!draft) return;
+useEffect(() => {
+  if (!draft) return;
 
-    setFileNameIncludes(draft.fileNameIncludes);
-    setPattern(draft.pattern);
-  }, [draft]);
+  setFileNameIncludes(draft.fileNameIncludes);
+  setPattern(draft.pattern);
+  setMatchType(draft.matchType ?? "contains");
+}, [draft]);
 
   function handleSave() {
     const game = games.find((item) => item.id === gameId);
@@ -88,11 +91,13 @@ export function DetectionProfilePanel({
       rarity: achievement.rarity,
       fileNameIncludes: fileNameIncludes.trim(),
       pattern: pattern.trim(),
+      matchType,
       createdAt: new Date().toISOString(),
     });
 
     setFileNameIncludes("");
     setPattern("");
+    setMatchType("contains");
 
     loadProfiles();
     onProfilesChanged();
@@ -147,6 +152,17 @@ export function DetectionProfilePanel({
             className="w-full rounded-xl bg-slate-800 border border-slate-700 px-4 py-3 outline-none focus:border-yellow-400"
           />
 
+          <select
+            value={matchType}
+            onChange={(event) =>
+              setMatchType(event.target.value as DetectionMatchType)
+            }
+            className="w-full rounded-xl bg-slate-800 border border-slate-700 px-4 py-3 outline-none focus:border-yellow-400"
+          >
+            <option value="contains">Texto exacto</option>
+            <option value="regex">Regex</option>
+          </select>
+
           <input
             value={pattern}
             onChange={(event) => setPattern(event.target.value)}
@@ -188,6 +204,10 @@ export function DetectionProfilePanel({
 
             <p className="text-sm text-slate-400">
               Patrón: <strong>{profile.pattern}</strong>
+            </p>
+
+            <p className="text-sm text-slate-400">
+              Tipo: <strong>{profile.matchType ?? "contains"}</strong>
             </p>
 
             <button
