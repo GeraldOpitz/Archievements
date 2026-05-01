@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import type { DetectionProfileDraft } from "./detectionProfiles";
+
 
 interface FileSnapshotEntry {
   path: string;
@@ -11,6 +13,10 @@ interface FileSnapshotEntry {
 interface SnapshotChange {
   kind: "created" | "modified" | "deleted";
   file: FileSnapshotEntry;
+}
+
+interface Props {
+  onCreateProfileDraft?: (draft: DetectionProfileDraft) => void;
 }
 
 function compareSnapshots(
@@ -68,7 +74,7 @@ const changeLabels: Record<SnapshotChange["kind"], string> = {
   deleted: "Eliminado",
 };
 
-export function FolderSnapshotPanel() {
+export function FolderSnapshotPanel({ onCreateProfileDraft }: Props) {
   const [folderPath, setFolderPath] = useState("");
   const [baseline, setBaseline] = useState<FileSnapshotEntry[]>([]);
   const [changes, setChanges] = useState<SnapshotChange[]>([]);
@@ -76,6 +82,20 @@ export function FolderSnapshotPanel() {
   const [selectedFilePath, setSelectedFilePath] = useState("");
   const [filePreview, setFilePreview] = useState("");
   const [previewMessage, setPreviewMessage] = useState("");
+  const [candidatePattern, setCandidatePattern] = useState("");
+
+  function getFileName(path: string) {
+      return path.split(/[\\/]/).pop() ?? path;
+    }
+
+    function createProfileDraftFromPreview() {
+      if (!selectedFilePath || !candidatePattern.trim()) return;
+
+      onCreateProfileDraft?.({
+        fileNameIncludes: getFileName(selectedFilePath),
+        pattern: candidatePattern.trim(),
+      });
+    }
 
   async function takeBaseline() {
     if (!folderPath.trim()) return;
@@ -126,6 +146,7 @@ export function FolderSnapshotPanel() {
     async function previewFile(path: string) {
     try {
         setSelectedFilePath(path);
+        setCandidatePattern("");
         setPreviewMessage("Leyendo archivo...");
         setFilePreview("");
 
@@ -283,6 +304,33 @@ export function FolderSnapshotPanel() {
                 {previewMessage}
             </p>
             )}
+
+            <div className="mb-4 space-y-3">
+              <input
+                value={candidatePattern}
+                onChange={(event) => setCandidatePattern(event.target.value)}
+                placeholder="Patrón candidato, ej: ACHIEVEMENT_UNLOCKED=true"
+                className="w-full rounded-xl bg-slate-800 border border-slate-700 px-4 py-3 outline-none focus:border-yellow-400"
+              />
+
+              <button
+                onClick={createProfileDraftFromPreview}
+                disabled={!candidatePattern.trim()}
+                className="
+                  w-full
+                  px-6 py-3
+                  rounded-2xl
+                  bg-purple-500
+                  text-black
+                  font-bold
+                  hover:bg-purple-400
+                  transition
+                  disabled:opacity-50
+                "
+              >
+                Crear perfil desde este archivo
+              </button>
+            </div>
 
             {filePreview ? (
             <pre

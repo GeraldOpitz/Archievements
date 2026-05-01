@@ -13,6 +13,11 @@ export interface DetectionProfile {
   createdAt: string;
 }
 
+export interface DetectionProfileDraft {
+  fileNameIncludes: string;
+  pattern: string;
+}
+
 export function getDetectionProfiles(): DetectionProfile[] {
   const raw = localStorage.getItem(STORAGE_KEY);
 

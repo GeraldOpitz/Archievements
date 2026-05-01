@@ -34,6 +34,7 @@ import {
   type DetectionProfile,
 } from "./features/achievements/detectionProfiles";
 import { FolderSnapshotPanel } from "./features/achievements/FolderSnapshotPanel";
+import type { DetectionProfileDraft } from "./features/achievements/detectionProfiles";
 
 export default function App() {
   const [theme, setTheme] = useState<AchievementTheme>("xbox");
@@ -43,6 +44,8 @@ export default function App() {
   const [selectedGame, setSelectedGame] = useState<GameRecord | null>(null);
   const [detectorRefreshKey, setDetectorRefreshKey] = useState(0);
   const [detectionProfiles, setDetectionProfiles] = useState<DetectionProfile[]>([]);
+  const [detectionProfileDraft, setDetectionProfileDraft] =
+  useState<DetectionProfileDraft | null>(null);
 
   const {
     currentAchievement,
@@ -284,10 +287,13 @@ useEffect(() => {
 
         <FileWatcherPanel onFileChanged={handleFileChanged} />
 
-        <FolderSnapshotPanel />
+        <FolderSnapshotPanel
+          onCreateProfileDraft={setDetectionProfileDraft}
+        />
 
         <DetectionProfilePanel
           refreshKey={libraryRefreshKey + historyRefreshKey}
+          draft={detectionProfileDraft}
           onProfilesChanged={() => setDetectorRefreshKey((prev) => prev + 1)}
         />
 

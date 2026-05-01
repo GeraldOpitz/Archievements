@@ -11,15 +11,18 @@ import {
   saveDetectionProfile,
   type DetectionProfile,
 } from "./detectionProfiles";
+import type { DetectionProfileDraft } from "./detectionProfiles";
 
 interface Props {
   refreshKey: number;
   onProfilesChanged: () => void;
+  draft?: DetectionProfileDraft | null;
 }
 
 export function DetectionProfilePanel({
   refreshKey,
   onProfilesChanged,
+  draft,
 }: Props) {
   const [games, setGames] = useState<GameRecord[]>([]);
   const [achievements, setAchievements] = useState<AchievementRecord[]>([]);
@@ -62,6 +65,13 @@ export function DetectionProfilePanel({
   useEffect(() => {
     loadAchievements(gameId);
   }, [gameId, refreshKey]);
+
+  useEffect(() => {
+    if (!draft) return;
+
+    setFileNameIncludes(draft.fileNameIncludes);
+    setPattern(draft.pattern);
+  }, [draft]);
 
   function handleSave() {
     const game = games.find((item) => item.id === gameId);
