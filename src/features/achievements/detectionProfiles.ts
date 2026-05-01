@@ -14,12 +14,14 @@ export interface DetectionProfile {
   pattern: string;
   matchType: DetectionMatchType;
   createdAt: string;
+  watchFolderPath: string;
 }
 
 export interface DetectionProfileDraft {
   fileNameIncludes: string;
   pattern: string;
   matchType?: DetectionMatchType;
+  watchFolderPath: string;
 }
 
 export function getDetectionProfiles(): DetectionProfile[] {

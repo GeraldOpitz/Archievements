@@ -108,9 +108,20 @@ useEffect(() => {
 
   async function handleFileChanged(payload: { path: string; kind: string }) {
     for (const profile of detectionProfiles) {
+      const normalizedPath = payload.path.toLowerCase();
+      const normalizedWatchFolder = profile.watchFolderPath?.toLowerCase() ?? "";
+
+      if (
+        normalizedWatchFolder &&
+        !normalizedPath.startsWith(normalizedWatchFolder)
+        ) {
+        continue;
+      }
+      
       const pathMatches = payload.path
         .toLowerCase()
         .includes(profile.fileNameIncludes.toLowerCase());
+
 
       if (!pathMatches) continue;
 

@@ -34,6 +34,7 @@ export function DetectionProfilePanel({
   const [fileNameIncludes, setFileNameIncludes] = useState("");
   const [pattern, setPattern] = useState("");
   const [matchType, setMatchType] = useState<DetectionMatchType>("contains");
+  const [watchFolderPath, setWatchFolderPath] = useState("");
 
   async function loadGames() {
     const savedGames = await getGames();
@@ -68,20 +69,27 @@ export function DetectionProfilePanel({
     loadAchievements(gameId);
   }, [gameId, refreshKey]);
 
-useEffect(() => {
-  if (!draft) return;
+  useEffect(() => {
+    if (!draft) return;
 
-  setFileNameIncludes(draft.fileNameIncludes);
-  setPattern(draft.pattern);
-  setMatchType(draft.matchType ?? "contains");
-}, [draft]);
+    if (draft.watchFolderPath) {
+      setWatchFolderPath(draft.watchFolderPath);
+    }
+
+    setFileNameIncludes(draft.fileNameIncludes);
+    setPattern(draft.pattern);
+    setMatchType(draft.matchType ?? "contains");
+  }, [draft]);
 
   function handleSave() {
     const game = games.find((item) => item.id === gameId);
     const achievement = achievements.find((item) => item.id === achievementId);
 
     if (!game || !achievement) return;
-    if (!fileNameIncludes.trim() || !pattern.trim()) return;
+    if (!watchFolderPath.trim() || !fileNameIncludes.trim() || !pattern.trim()) {
+      return;
+    }
+    
 
     saveDetectionProfile({
       id: crypto.randomUUID(),
@@ -93,11 +101,13 @@ useEffect(() => {
       pattern: pattern.trim(),
       matchType,
       createdAt: new Date().toISOString(),
+      watchFolderPath: watchFolderPath.trim(),
     });
 
     setFileNameIncludes("");
     setPattern("");
     setMatchType("contains");
+    setWatchFolderPath("");
 
     loadProfiles();
     onProfilesChanged();
@@ -170,6 +180,13 @@ useEffect(() => {
             className="w-full rounded-xl bg-slate-800 border border-slate-700 px-4 py-3 outline-none focus:border-yellow-400"
           />
 
+          <input
+            value={watchFolderPath}
+            onChange={(event) => setWatchFolderPath(event.target.value)}
+            placeholder="Carpeta a vigilar, ej: C:\Users\Gerald\Saved Games\Hades"
+            className="w-full rounded-xl bg-slate-800 border border-slate-700 px-4 py-3 outline-none focus:border-yellow-400"
+          />
+
           <button
             onClick={handleSave}
             className="
@@ -208,6 +225,10 @@ useEffect(() => {
 
             <p className="text-sm text-slate-400">
               Tipo: <strong>{profile.matchType ?? "contains"}</strong>
+            </p>
+
+            <p className="text-sm text-slate-400 mt-1 break-all">
+              Carpeta: <strong>{profile.watchFolderPath ?? "No definida"}</strong>
             </p>
 
             <button
